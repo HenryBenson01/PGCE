@@ -1,14 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PGCE Platform Game</title>
+
 <style>
 body {
     margin: 0;
     text-align: center;
     background: #ddd;
+    font-family: Arial;
 }
 
 #game {
-    border: 1px solid black;
+    border: 2px solid black;
     max-width: 100%;
     touch-action: none;
+    background: #87CEEB;
 }
 
 #controls{
@@ -26,6 +34,9 @@ body {
     border-radius:20px;
 }
 </style>
+</head>
+
+<body>
 
 <canvas id="game" width="900" height="500"></canvas>
 
@@ -37,20 +48,27 @@ body {
 
 <script>
 
+// ===== CANVAS =====
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Images
+// ===== IMAGES (SAFE LOAD) =====
 const playerImg = new Image();
+let playerLoaded = false;
+playerImg.onload = () => playerLoaded = true;
 playerImg.src = "certificate.png";
 
 const goalImg = new Image();
+let goalLoaded = false;
+goalImg.onload = () => goalLoaded = true;
 goalImg.src = "Student.jpeg";
 
 const backgroundImg = new Image();
+let bgLoaded = false;
+backgroundImg.onload = () => bgLoaded = true;
 backgroundImg.src = "LincolnBishop.webp";
 
-// Player
+// ===== PLAYER =====
 let player = {
     x:100,
     y:300,
@@ -61,12 +79,14 @@ let player = {
     grounded:false
 };
 
+// ===== GAME SETTINGS =====
 const gravity = 0.8;
 const speed = 5;
 const jump = -15;
 
 const worldWidth = 4000;
 
+// ===== LEVEL =====
 const platforms = [
     {x:0,y:450,w:4000,h:50},
     {x:300,y:350,w:150,h:20},
@@ -81,7 +101,7 @@ const platforms = [
 const signs = [
     {x:200, text:"Upload lesson plans"},
     {x:700, text:"Post on EPRD"},
-    {x:1200, text:"Meet teaching standards"},
+    {x:1200, text:"Meet standards"},
     {x:1900, text:"Hand in ITAP"},
     {x:2600, text:"Do assignment"}
 ];
@@ -93,9 +113,11 @@ const goal = {
     h:80
 };
 
+// ===== CAMERA =====
 let cameraX = 0;
 let won = false;
 
+// ===== INPUT =====
 const keys = {};
 
 // keyboard
@@ -107,33 +129,28 @@ document.addEventListener("keyup", e=>{
 });
 
 // mobile buttons
-function setupButton(id,key){
+function bindButton(id,key){
     const btn = document.getElementById(id);
 
-    btn.addEventListener("touchstart", e=>{
-        e.preventDefault();
-        keys[key] = true;
+    ["touchstart","mousedown"].forEach(evt=>{
+        btn.addEventListener(evt, e=>{
+            e.preventDefault();
+            keys[key] = true;
+        });
     });
 
-    btn.addEventListener("touchend", e=>{
-        e.preventDefault();
-        keys[key] = false;
-    });
-
-    btn.addEventListener("mousedown", ()=>{
-        keys[key] = true;
-    });
-
-    btn.addEventListener("mouseup", ()=>{
-        keys[key] = false;
+    ["touchend","mouseup","mouseleave"].forEach(evt=>{
+        btn.addEventListener(evt, e=>{
+            keys[key] = false;
+        });
     });
 }
 
-setupButton("leftBtn","a");
-setupButton("rightBtn","d");
-setupButton("jumpBtn","w");
+bindButton("leftBtn","a");
+bindButton("rightBtn","d");
+bindButton("jumpBtn","w");
 
-// collision
+// ===== COLLISION =====
 function collide(a,b){
     return (
         a.x < b.x + b.w &&
@@ -143,6 +160,7 @@ function collide(a,b){
     );
 }
 
+// ===== UPDATE =====
 function update(){
 
     if(won) return;
@@ -179,19 +197,24 @@ function update(){
     }
 
     cameraX = player.x - 250;
-    if(cameraX < 0) cameraX = 0;
-    if(cameraX > worldWidth - canvas.width)
-        cameraX = worldWidth - canvas.width;
+    cameraX = Math.max(0, Math.min(cameraX, worldWidth - canvas.width));
 }
 
+// ===== DRAW =====
 function draw(){
 
-    // CLEAR FIRST (IMPORTANT)
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
     // background
-    if(backgroundImg.complete)
+    if(bgLoaded){
         ctx.drawImage(backgroundImg,0,0,canvas.width,canvas.height);
+    }
+
+    // platforms
+    ctx.fillStyle = "green";
+    for(let p of platforms){
+        ctx.fillRect(p.x-cameraX,p.y,p.w,p.h);
+    }
 
     // signs
     ctx.fillStyle = "white";
@@ -201,23 +224,19 @@ function draw(){
         ctx.fillRect(s.x-cameraX,120,260,60);
         ctx.strokeRect(s.x-cameraX,120,260,60);
         ctx.fillStyle = "black";
-        ctx.fillText(s.text, s.x-cameraX+10, 155);
+        ctx.fillText(s.text,s.x-cameraX+10,155);
         ctx.fillStyle = "white";
     }
 
-    // platforms
-    ctx.fillStyle = "green";
-    for(let p of platforms){
-        ctx.fillRect(p.x-cameraX,p.y,p.w,p.h);
+    // goal
+    if(goalLoaded){
+        ctx.drawImage(goalImg,goal.x-cameraX,goal.y,goal.w,goal.h);
     }
 
-    // goal
-    if(goalImg.complete)
-        ctx.drawImage(goalImg,goal.x-cameraX,goal.y,goal.w,goal.h);
-
     // player
-    if(playerImg.complete)
+    if(playerLoaded){
         ctx.drawImage(playerImg,player.x-cameraX,player.y,player.w,player.h);
+    }
 
     // UI
     ctx.fillStyle = "black";
@@ -230,6 +249,7 @@ function draw(){
     }
 }
 
+// ===== LOOP =====
 function loop(){
     update();
     draw();
@@ -239,3 +259,6 @@ function loop(){
 loop();
 
 </script>
+
+</body>
+</html>
