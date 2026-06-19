@@ -102,10 +102,10 @@ const platforms = [
 
 const signs = [
     {x:200, text:"Upload lesson plans"},
-    {x:700, text:"Post on EPRD"},
-    {x:1200, text:"Meet standards"},
+    {x:700, text:"Post Meetings on EPRD"},
+    {x:1200, text:"Evidence Teaching standards"},
     {x:1900, text:"Hand in ITAP"},
-    {x:2600, text:"Do assignment"}
+    {x:2600, text:"Hand in PGCE assignment"}
 ];
 
 const goal = {
@@ -246,8 +246,32 @@ function draw(){
     ctx.fillText("WASD or Touch Controls",10,30);
 
     if(won){
+
+        // dark overlay
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        // white box
+        ctx.fillStyle = "white";
+        ctx.fillRect(120,170,660,160);
+
+    // border
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(120,170,660,160);
+
+        // text
+        ctx.fillStyle = "black";
         ctx.font = "50px Arial";
-        ctx.fillText("You now have QTS!",180,200);
+        ctx.textAlign = "center";
+
+        ctx.fillText("You now have QTS!", canvas.width/2, 240);
+
+        ctx.font = "22px Arial";
+        ctx.fillText("Press refresh to play again", canvas.width/2, 300);
+
+        ctx.textAlign = "start";
+    }
     }
 }
 
