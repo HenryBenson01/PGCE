@@ -1,0 +1,241 @@
+<style>
+body {
+    margin: 0;
+    text-align: center;
+    background: #ddd;
+}
+
+#game {
+    border: 1px solid black;
+    max-width: 100%;
+    touch-action: none;
+}
+
+#controls{
+    margin-top:10px;
+    display:flex;
+    justify-content:center;
+    gap:15px;
+}
+
+#controls button{
+    width:100px;
+    height:100px;
+    font-size:40px;
+    font-weight:bold;
+    border-radius:20px;
+}
+</style>
+
+<canvas id="game" width="900" height="500"></canvas>
+
+<div id="controls">
+    <button id="leftBtn">◀</button>
+    <button id="jumpBtn">▲</button>
+    <button id="rightBtn">▶</button>
+</div>
+
+<script>
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Images
+const playerImg = new Image();
+playerImg.src = "certificate.png";
+
+const goalImg = new Image();
+goalImg.src = "Student.jpeg";
+
+const backgroundImg = new Image();
+backgroundImg.src = "LincolnBishop.webp";
+
+// Player
+let player = {
+    x:100,
+    y:300,
+    w:60,
+    h:80,
+    vx:0,
+    vy:0,
+    grounded:false
+};
+
+const gravity = 0.8;
+const speed = 5;
+const jump = -15;
+
+const worldWidth = 4000;
+
+const platforms = [
+    {x:0,y:450,w:4000,h:50},
+    {x:300,y:350,w:150,h:20},
+    {x:600,y:280,w:150,h:20},
+    {x:900,y:220,w:150,h:20},
+    {x:1300,y:320,w:200,h:20},
+    {x:1800,y:250,w:200,h:20},
+    {x:2300,y:180,w:200,h:20},
+    {x:2800,y:280,w:200,h:20}
+];
+
+const signs = [
+    {x:200, text:"Upload lesson plans"},
+    {x:700, text:"Post on EPRD"},
+    {x:1200, text:"Meet teaching standards"},
+    {x:1900, text:"Hand in ITAP"},
+    {x:2600, text:"Do assignment"}
+];
+
+const goal = {
+    x:3500,
+    y:370,
+    w:80,
+    h:80
+};
+
+let cameraX = 0;
+let won = false;
+
+const keys = {};
+
+// keyboard
+document.addEventListener("keydown", e=>{
+    keys[e.key.toLowerCase()] = true;
+});
+document.addEventListener("keyup", e=>{
+    keys[e.key.toLowerCase()] = false;
+});
+
+// mobile buttons
+function setupButton(id,key){
+    const btn = document.getElementById(id);
+
+    btn.addEventListener("touchstart", e=>{
+        e.preventDefault();
+        keys[key] = true;
+    });
+
+    btn.addEventListener("touchend", e=>{
+        e.preventDefault();
+        keys[key] = false;
+    });
+
+    btn.addEventListener("mousedown", ()=>{
+        keys[key] = true;
+    });
+
+    btn.addEventListener("mouseup", ()=>{
+        keys[key] = false;
+    });
+}
+
+setupButton("leftBtn","a");
+setupButton("rightBtn","d");
+setupButton("jumpBtn","w");
+
+// collision
+function collide(a,b){
+    return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+    );
+}
+
+function update(){
+
+    if(won) return;
+
+    player.vx = 0;
+
+    if(keys["a"]) player.vx = -speed;
+    if(keys["d"]) player.vx = speed;
+
+    if(keys["w"] && player.grounded){
+        player.vy = jump;
+        player.grounded = false;
+    }
+
+    player.x += player.vx;
+
+    player.vy += gravity;
+    player.y += player.vy;
+
+    player.grounded = false;
+
+    for(let p of platforms){
+        if(collide(player,p)){
+            if(player.vy > 0){
+                player.y = p.y - player.h;
+                player.vy = 0;
+                player.grounded = true;
+            }
+        }
+    }
+
+    if(collide(player,goal)){
+        won = true;
+    }
+
+    cameraX = player.x - 250;
+    if(cameraX < 0) cameraX = 0;
+    if(cameraX > worldWidth - canvas.width)
+        cameraX = worldWidth - canvas.width;
+}
+
+function draw(){
+
+    // CLEAR FIRST (IMPORTANT)
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // background
+    if(backgroundImg.complete)
+        ctx.drawImage(backgroundImg,0,0,canvas.width,canvas.height);
+
+    // signs
+    ctx.fillStyle = "white";
+    ctx.font = "18px Arial";
+
+    for(let s of signs){
+        ctx.fillRect(s.x-cameraX,120,260,60);
+        ctx.strokeRect(s.x-cameraX,120,260,60);
+        ctx.fillStyle = "black";
+        ctx.fillText(s.text, s.x-cameraX+10, 155);
+        ctx.fillStyle = "white";
+    }
+
+    // platforms
+    ctx.fillStyle = "green";
+    for(let p of platforms){
+        ctx.fillRect(p.x-cameraX,p.y,p.w,p.h);
+    }
+
+    // goal
+    if(goalImg.complete)
+        ctx.drawImage(goalImg,goal.x-cameraX,goal.y,goal.w,goal.h);
+
+    // player
+    if(playerImg.complete)
+        ctx.drawImage(playerImg,player.x-cameraX,player.y,player.w,player.h);
+
+    // UI
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("WASD or Touch Controls",10,30);
+
+    if(won){
+        ctx.font = "50px Arial";
+        ctx.fillText("You now have QTS!",180,200);
+    }
+}
+
+function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+</script>
