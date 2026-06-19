@@ -48,27 +48,30 @@ body {
 
 <script>
 
-// ===== CANVAS =====
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ===== IMAGES (SAFE LOAD) =====
+// ================= IMAGES =================
+
+// PLAYER = Student
 const playerImg = new Image();
 let playerLoaded = false;
 playerImg.onload = () => playerLoaded = true;
-playerImg.src = "certificate.png";
+playerImg.src = "Student.jpg";
 
+// GOAL = Certificate
 const goalImg = new Image();
 let goalLoaded = false;
 goalImg.onload = () => goalLoaded = true;
-goalImg.src = "Student.jpeg";
+goalImg.src = "certificate.png";
 
+// BACKGROUND
 const backgroundImg = new Image();
 let bgLoaded = false;
 backgroundImg.onload = () => bgLoaded = true;
 backgroundImg.src = "LincolnBishop.webp";
 
-// ===== PLAYER =====
+// ================= PLAYER =================
 let player = {
     x:100,
     y:300,
@@ -79,14 +82,13 @@ let player = {
     grounded:false
 };
 
-// ===== GAME SETTINGS =====
+// ================= SETTINGS =================
 const gravity = 0.8;
 const speed = 5;
 const jump = -15;
-
 const worldWidth = 4000;
 
-// ===== LEVEL =====
+// ================= LEVEL =================
 const platforms = [
     {x:0,y:450,w:4000,h:50},
     {x:300,y:350,w:150,h:20},
@@ -113,44 +115,44 @@ const goal = {
     h:80
 };
 
-// ===== CAMERA =====
+// ================= CAMERA =================
 let cameraX = 0;
 let won = false;
 
-// ===== INPUT =====
+// ================= INPUT =================
 const keys = {};
 
-// keyboard
 document.addEventListener("keydown", e=>{
     keys[e.key.toLowerCase()] = true;
 });
+
 document.addEventListener("keyup", e=>{
     keys[e.key.toLowerCase()] = false;
 });
 
 // mobile buttons
-function bindButton(id,key){
+function bind(id,key){
     const btn = document.getElementById(id);
 
-    ["touchstart","mousedown"].forEach(evt=>{
-        btn.addEventListener(evt, e=>{
+    ["touchstart","mousedown"].forEach(ev=>{
+        btn.addEventListener(ev, e=>{
             e.preventDefault();
             keys[key] = true;
         });
     });
 
-    ["touchend","mouseup","mouseleave"].forEach(evt=>{
-        btn.addEventListener(evt, e=>{
+    ["touchend","mouseup","mouseleave"].forEach(ev=>{
+        btn.addEventListener(ev, ()=>{
             keys[key] = false;
         });
     });
 }
 
-bindButton("leftBtn","a");
-bindButton("rightBtn","d");
-bindButton("jumpBtn","w");
+bind("leftBtn","a");
+bind("rightBtn","d");
+bind("jumpBtn","w");
 
-// ===== COLLISION =====
+// ================= COLLISION =================
 function collide(a,b){
     return (
         a.x < b.x + b.w &&
@@ -160,7 +162,7 @@ function collide(a,b){
     );
 }
 
-// ===== UPDATE =====
+// ================= UPDATE =================
 function update(){
 
     if(won) return;
@@ -200,7 +202,7 @@ function update(){
     cameraX = Math.max(0, Math.min(cameraX, worldWidth - canvas.width));
 }
 
-// ===== DRAW =====
+// ================= DRAW =================
 function draw(){
 
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -228,12 +230,12 @@ function draw(){
         ctx.fillStyle = "white";
     }
 
-    // goal
+    // goal (certificate)
     if(goalLoaded){
         ctx.drawImage(goalImg,goal.x-cameraX,goal.y,goal.w,goal.h);
     }
 
-    // player
+    // player (student)
     if(playerLoaded){
         ctx.drawImage(playerImg,player.x-cameraX,player.y,player.w,player.h);
     }
@@ -249,7 +251,7 @@ function draw(){
     }
 }
 
-// ===== LOOP =====
+// ================= LOOP =================
 function loop(){
     update();
     draw();
